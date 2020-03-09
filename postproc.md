@@ -4,10 +4,10 @@
 ## SYNOPSIS
 
 `postproc`
-[`-C` *directory*]
-[`-e` *rule*]
+\[`-C` *directory*\]
+\[`-e` *rule*\]
 *program*
-[*argument* ...]
+\[*argument* ...\]
 
 ## DESCRIPTION
 
@@ -25,10 +25,10 @@ the current line.
 
 The following command-line options and arguments exist:
 
-- [`-C` *directory*]
+- \[`-C` *directory*\]
   Change the current working *directory* before executing the *program*.
 
-- [`-e` *rule*]
+- \[`-e` *rule*\]
   Apply post-processing *rule* to `stdout` and `stderr` of *program*.
   The two outputs can be distinguished in the rules with the conditions
   `#stdout` and `#stderr`, based on the two initially defined tags.
