@@ -51,30 +51,20 @@ const ansiStyles  = require("ansi-styles")
         })
         .usage("Usage: postproc [-h|--help] [-V|--version] [-e|--execute <rule>] <command> ...")
         .option("h", {
-            alias:    "help",
-            type:     "boolean",
             describe: "show program help information",
-            default:  false
+            alias:    "help", type: "boolean", default: false
         })
         .option("V", {
-            alias:    "version",
-            type:     "boolean",
             describe: "show program version information",
-            default:  false
+            alias:    "version", type: "boolean", default: false
         })
         .option("e", {
-            alias:    "execute",
-            type:     "string",
             describe: "rule to execute",
-            nargs:    1,
-            default:  []
+            alias:    "execute", type: "string", nargs: 1, default: []
         })
         .option("C", {
-            alias:    "change-directory",
-            type:     "string",
             describe: "directory to change to before executing command",
-            nargs:    1,
-            default:  process.cwd()
+            alias:    "change-directory", type: "string", nargs: 1, default: process.cwd()
         })
         .version(false)
         .strict(true)
@@ -96,15 +86,13 @@ const ansiStyles  = require("ansi-styles")
         argv.execute = [ argv.execute ]
 
     /*  sanity check command-line arguments  */
-    if (argv.execute.length === 0)
-        throw new Error("at least one rule to execute has to be given")
     if (argv._.length < 1)
         throw new Error("invalid number of arguments")
     const cmd   = argv._[0]
     const args  = argv._.slice(1)
     const chdir = argv.changeDirectory
 
-    /*  parse a rule  */
+    /*  parse a single rule  */
     const parseRule = (rule) => {
         const lexer = new Tokenizr()
         lexer.rule("condition", /(!?)\/((?:\\\/|[^/])+)\//, (ctx, match) => {
@@ -137,6 +125,8 @@ const ansiStyles  = require("ansi-styles")
         lexer.debug(false)
         return lexer.tokens()
     }
+
+    /*  parse all rules  */
     const rules = []
     argv.execute.forEach((arg) => {
         const tokens = parseRule(arg)
@@ -154,18 +144,19 @@ const ansiStyles  = require("ansi-styles")
 
     /*  process a line of output  */
     const processLine = (line, tags) => {
-        /*  iterate over all rules  */
-        let ignore = false
+        /*  repeat entry point  */
         let repeat = true
         while (repeat) {
             repeat = false
             repeated: {
+                /*  iterate over all rules  */
                 for (const rule of rules) {
                     /*  check whether all conditions matched  */
                     let matched = true
                     let capture = null
                     for (const condition of rule.conditions) {
                         if (condition.type === "tag") {
+                            /*  tag: !#foo or #foo  */
                             if (!(   ( condition.not && !tags[condition.tag])
                                   || (!condition.not &&  tags[condition.tag]))) {
                                 matched = false
@@ -173,6 +164,7 @@ const ansiStyles  = require("ansi-styles")
                             }
                         }
                         else if (condition.type === "regexp") {
+                            /*  regexp !/foo/ or /foo/  */
                             capture = condition.regexp.exec(line)
                             if (!(   ( condition.not && !capture)
                                   || (!condition.not &&  capture))) {
@@ -184,9 +176,9 @@ const ansiStyles  = require("ansi-styles")
                             break
                     }
 
-                    /*  if all conditions matched, process actions  */
+                    /*  if all conditions matched, process the actions  */
                     if (matched) {
-                        /*  fallback for last regexp capture  */
+                        /*  provide capture fallback  */
                         if (capture === null) {
                             capture = [ line ]
                             capture.index = 0
@@ -196,6 +188,7 @@ const ansiStyles  = require("ansi-styles")
                         /*  iterate over all actions  */
                         for (const action of rule.actions) {
                             if (action.type === "command") {
+                                /*  process commands: repeat, break or ignore  */
                                 if (action.command === "repeat") {
                                     repeat = true
                                     break repeated
@@ -206,23 +199,27 @@ const ansiStyles  = require("ansi-styles")
                                 }
                                 else if (action.command === "ignore") {
                                     repeat = false
-                                    ignore = true
+                                    line = null
                                     break repeated
                                 }
                             }
                             else if (action.type === "tag") {
+                                /*  process tag: !#foo or #foo  */
                                 if (action.not)
                                     delete tags[action.tag]
                                 else
                                     tags[action.tag] = true
                             }
                             else if (action.type === "replace") {
+                                /*  process replace: "foo"  */
                                 let replacer = action.string
                                 replacer = replacer
+                                    /*  replace "$N"  */
                                     .replace(/\$(\d)/g, (m, num) => {
                                         num = parseInt(num)
                                         return (capture[num] !== undefined ? capture[num] : "")
                                     })
+                                    /*  replace "%x(...)"  */
                                     .replace(/%([ct])(?:\((.+?)\))?/g, (m, func, args) => {
                                         let result = ""
                                         args = args ? args.split(/\s*,\s*/) : []
@@ -244,7 +241,11 @@ const ansiStyles  = require("ansi-styles")
                                         }
                                         return result
                                     })
-                                line = line.substring(0, capture.index) + replacer +
+
+                                /*  reassemble line  */
+                                line =
+                                    line.substring(0, capture.index) +
+                                    replacer +
                                     line.substring(capture.index + capture[0].length)
                             }
                         }
@@ -252,20 +253,18 @@ const ansiStyles  = require("ansi-styles")
                 }
             }
         }
-        if (ignore)
-            line = null
         return line
     }
 
-    /*  fork off command  */
+    /*  fork off shell command  */
     const proc = execa(cmd, args, {
-        stdio: [ "inherit", "pipe", "pipe" ],
         stripFinalNewline: false,
+        stdio:  [ "inherit", "pipe", "pipe" ],
         reject: false,
-        cwd: chdir
+        cwd:    chdir
     })
 
-    /*  post-process stdout  */
+    /*  post-process stdout or command  */
     const stdoutTags = { stdout: true }
     const stdout = byline.createStream(proc.stdout)
     stdout.on("data", (line) => {
@@ -275,7 +274,7 @@ const ansiStyles  = require("ansi-styles")
             process.stdout.write(`${line}\n`)
     })
 
-    /*  post-process stderr  */
+    /*  post-process stderr of command  */
     const stderrTags = { stderr: true }
     const stderr = byline.createStream(proc.stderr)
     stderr.on("data", (line) => {
