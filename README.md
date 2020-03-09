@@ -2,7 +2,7 @@
 postproc
 ========
 
-**Post-Process Output of Command**
+**Post-Process Output of Program**
 
 <p/>
 <img src="https://nodei.co/npm/postproc.png?downloads=true&stars=true" alt=""/>

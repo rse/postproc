@@ -1,7 +1,7 @@
 {
     "name":        "postproc",
     "homepage":    "http://github.com/rse/postproc",
-    "description": "Post-Process Output of Command",
+    "description": "Post-Process Output of Program",
     "version":     "0.9.1",
     "license":     "MIT",
     "author": {

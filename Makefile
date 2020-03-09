@@ -1,5 +1,5 @@
 ##
-##  PostProc -- Post-Process Output of Command
+##  PostProc -- Post-Process Output of Program
 ##  Copyright (c) 2020 Dr. Ralf S. Engelschall <rse@engelschall.com>
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
