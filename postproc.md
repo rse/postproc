@@ -3,7 +3,10 @@
 
 ## SYNOPSIS
 
-`postproc` `-e` *rule* [...] *command* [...]
+`postproc`
+[-C *directory*]
+`-e` *rule* [...]
+*command* [...]
 
 ## DESCRIPTION
 

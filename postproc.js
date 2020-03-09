@@ -69,6 +69,13 @@ const ansiStyles  = require("ansi-styles")
             nargs:    1,
             default:  []
         })
+        .option("C", {
+            alias:    "change-directory",
+            type:     "string",
+            describe: "directory to change to before executing command",
+            nargs:    1,
+            default:  process.cwd()
+        })
         .version(false)
         .strict(true)
         .showHelpOnFail(true)
@@ -93,8 +100,9 @@ const ansiStyles  = require("ansi-styles")
         throw new Error("at least one rule to execute has to be given")
     if (argv._.length < 1)
         throw new Error("invalid number of arguments")
-    const cmd  = argv._[0]
-    const args = argv._.slice(1)
+    const cmd   = argv._[0]
+    const args  = argv._.slice(1)
+    const chdir = argv.changeDirectory
 
     /*  parse a rule  */
     const parseRule = (rule) => {
@@ -251,7 +259,10 @@ const ansiStyles  = require("ansi-styles")
 
     /*  fork off command  */
     const proc = execa(cmd, args, {
-        stdio: [ "inherit", "pipe", "pipe" ]
+        stdio: [ "inherit", "pipe", "pipe" ],
+        stripFinalNewline: false,
+        reject: false,
+        cwd: chdir
     })
 
     /*  post-process stdout  */
@@ -275,7 +286,9 @@ const ansiStyles  = require("ansi-styles")
     })
 
     /*  wait for command to exit and pass-through exit code  */
-    const result = await proc.catch((err) => err)
+    const result = await proc
+    if (result.exitCode === undefined)
+        throw new Error(result.originalMessage)
     process.exit(result.exitCode)
 })().catch((err) => {
     /*  handle fatal error  */
