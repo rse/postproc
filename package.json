@@ -1,0 +1,62 @@
+{
+    "name":        "postproc",
+    "homepage":    "http://github.com/rse/postproc",
+    "description": "Post-Process Output of Command",
+    "version":     "0.9.0",
+    "license":     "MIT",
+    "author": {
+        "name":    "Dr. Ralf S. Engelschall",
+        "email":   "rse@engelschall.com",
+        "url":     "http://engelschall.com"
+    },
+    "keywords": [
+        "post-process", "stdout", "stderr", "output", "command"
+    ],
+    "repository": {
+        "type": "git",
+        "url":  "git://github.com/rse/postproc.git"
+    },
+    "bugs": {
+        "url":  "http://github.com/rse/postproc/issues"
+    },
+    "bin": {
+        "postproc": "./postproc.js"
+    },
+    "devDependencies": {
+        "babel-eslint":           "10.1.0",
+        "eslint":                 "6.8.0",
+        "eslint-config-standard": "14.1.0",
+        "eslint-plugin-standard": "4.0.1",
+        "eslint-plugin-promise":  "4.2.1",
+        "eslint-plugin-import":   "2.20.1",
+        "eslint-plugin-node":     "11.0.0",
+        "npm-run-all":            "4.1.5",
+        "pkg":                    "4.4.4",
+        "remark-cli":             "7.0.1",
+        "remark":                 "11.0.2",
+        "remark-man":             "6.0.0"
+    },
+    "dependencies" : {
+        "yargs":                  "15.3.0",
+        "execa":                  "4.0.0",
+        "byline":                 "5.0.0",
+        "tokenizr":               "1.5.7",
+        "strip-ansi":             "6.0.0",
+        "ansi-styles":            "4.2.1",
+        "chalk":                  "3.0.0",
+        "moment":                 "2.24.0"
+    },
+    "engines": {
+        "node":                   ">=10.0.0"
+    },
+    "scripts": {
+        "prepublishOnly":         "npm-run-all -s lint",
+        "build":                  "npm-run-all -s lint generate:man package",
+        "clean":                  "npm-run-all -s package:clean generate:clean",
+        "lint":                   "eslint --config eslint.yaml postproc.js",
+        "package":                "make package",
+        "package:clean":          "rm -f postproc-linux-debian-x64.tar.xz postproc-linux-alpine-x64.tar.xz",
+        "generate:man":           "remark --quiet --use remark-man --output postproc.1 postproc.md",
+        "generate:clean":         "rm -f postproc.1"
+    }
+}
