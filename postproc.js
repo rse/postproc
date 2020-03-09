@@ -49,7 +49,7 @@ const ansiStyles  = require("ansi-styles")
             "dot-notation":              false,
             "halt-at-non-option":        true
         })
-        .usage("Usage: $0 [-h|--help] [-V|--version] [-e|--execute <rule>] <command> ...")
+        .usage("Usage: postproc [-h|--help] [-V|--version] [-e|--execute <rule>] <command> ...")
         .option("h", {
             alias:    "help",
             type:     "boolean",
