@@ -13,7 +13,15 @@ postproc
 Abstract
 --------
 
-FIXME
+`postproc`(1) is a small utility for flexibly post-processsing the
+`stdout` and `stderr` outputs of shell commands. It applies one or more
+post-processing rules to each line of output. Each rule can have zero or
+more conditions and one or more actions. The conditions allow to match
+the output line with the help of regular expressions or active tags. The
+actions allow to change the output line with the help of replacement
+strings, can add or delete active tags and can force the repeating or
+stopping of the rules for the current line and can force the ignoring of
+the current line.
 
 Installation
 ------------
@@ -25,8 +33,26 @@ $ npm install -g postproc
 Usage
 -----
 
-The [Unix manual page](https://github.com/rse/snas/blob/master/postproc.md) contains
+The [Unix manual page](https://github.com/rse/postproc/blob/master/postproc.md) contains
 detailed usage information.
+
+Examples
+--------
+
+```
+# adds timestamp prefix
+$ postproc -e ': "[%c(blue)%t(YYYY-MM-DD hh:mm:ss.SS)%c(reset)] $0"' \
+  npm install
+
+# marks directories as blue
+$ postproc -e '/^(d.+\s+)(\S+)$/ : "$1%c(blue)$2/%c(reset)"' \
+  ls -l
+
+# complex state-based marking of subsequent line
+# postproc -e '/complete log/ : #logfile break' \
+           -e '#logfile : "%c(bold)$0%c(reset)" !#logfile' \
+  npm install not-existing-module
+```
 
 License
 -------
