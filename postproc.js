@@ -49,7 +49,7 @@ const ansiStyles  = require("ansi-styles")
             "dot-notation":              false,
             "halt-at-non-option":        true
         })
-        .usage("Usage: postproc [-h|--help] [-V|--version] [-e|--execute <rule>] <command> ...")
+        .usage("Usage: postproc [-h|--help] [-V|--version] [-C|--chdir <directory>] [-e|--execute <rule>] <command> ...")
         .option("h", {
             describe: "show program help information",
             alias:    "help", type: "boolean", default: false
@@ -58,13 +58,13 @@ const ansiStyles  = require("ansi-styles")
             describe: "show program version information",
             alias:    "version", type: "boolean", default: false
         })
-        .option("e", {
-            describe: "rule to execute",
-            alias:    "execute", type: "string", nargs: 1, default: []
-        })
         .option("C", {
             describe: "directory to change to before executing command",
             alias:    "change-directory", type: "string", nargs: 1, default: process.cwd()
+        })
+        .option("e", {
+            describe: "rule to execute",
+            alias:    "execute", type: "string", nargs: 1, default: []
         })
         .version(false)
         .strict(true)
