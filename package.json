@@ -2,7 +2,7 @@
     "name":        "postproc",
     "homepage":    "http://github.com/rse/postproc",
     "description": "Post-Process Output of Program",
-    "version":     "0.9.2",
+    "version":     "0.9.3",
     "license":     "MIT",
     "author": {
         "name":    "Dr. Ralf S. Engelschall",
