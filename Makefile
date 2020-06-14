@@ -33,7 +33,6 @@ bootstrap:
 build: bootstrap
 	$(NPM) run prepublishOnly
 	$(NPM) run build
-	$(NPM) run package
 
 clean: bootstrap
 
