@@ -104,7 +104,7 @@ const tail        = require("tail")
 
     /*  parse named pipe usage  */
     argv.inject = argv.inject.map((spec) => {
-        let m = spec.match(/^(stdout|stderr):(.+)$/)
+        const m = spec.match(/^(stdout|stderr):(.+)$/)
         if (m === null)
             throw new Error("invalid injection specification")
         return { stream: m[1], path: m[2] }
@@ -279,12 +279,12 @@ const tail        = require("tail")
     const stderrTags = { stderr: true }
 
     /*  optionally listen on named pipes  */
-    for (inject of argv.inject) {
-        let stats = await fs.promises.stat(inject.path).catch((err) => null)
+    for (const inject of argv.inject) {
+        const stats = await fs.promises.stat(inject.path).catch(() => null)
         if (stats === null)
             throw new Error(`invalid injection path "${inject.path}": cannot access`)
         if (stats.isFIFO()) {
-            let stream = byline(fs.createReadStream(inject.path, { encoding: "utf8" }))
+            const stream = byline(fs.createReadStream(inject.path, { encoding: "utf8" }))
             stream.on("data", (line) => {
                 line = line.toString()
                 line = processLine(line, inject.stream === "stdout" ? stdoutTags : stderrTags)
@@ -293,7 +293,7 @@ const tail        = require("tail")
             })
         }
         else if (stats.isFile()) {
-            let stream = new tail.Tail(inject.path, { follow: true, encoding: "utf8" })
+            const stream = new tail.Tail(inject.path, { follow: true, encoding: "utf8" })
             stream.on("line", (line) => {
                 line = line.toString()
                 line = processLine(line, inject.stream === "stdout" ? stdoutTags : stderrTags)
@@ -314,7 +314,7 @@ const tail        = require("tail")
     })
 
     /*  post-process stdout/stderr of command  */
-    let streams = [ "stdout", "stderr" ]
+    const streams = [ "stdout", "stderr" ]
     streams.forEach((name) => {
         const stream = byline.createStream(proc[name])
         stream.on("data", (line) => {
