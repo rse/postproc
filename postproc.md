@@ -4,8 +4,9 @@
 ## SYNOPSIS
 
 `postproc`
-\[`-C` *directory*\]
-\[`-e` *rule*\]
+\[`-C`|`--change-directory` *directory*\]
+\[`-i`|`--inject` `stdout:`*file*|`stderr`:*file*\]
+\[`-e`|`--execute` *rule*\]
 *program*
 \[*argument* ...\]
 
