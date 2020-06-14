@@ -25,10 +25,13 @@ the current line.
 
 The following command-line options and arguments exist:
 
-- \[`-C` *directory*\]
+- \[`-C`|`--change-directory` *directory*\]
   Change the current working *directory* before executing the *program*.
 
-- \[`-e` *rule*\]
+- \[`-i`|`--inject` *file*\]
+  Inject output from pipe/file into stdout/stderr streams.
+
+- \[`-e`|`--execute` *rule*\]
   Apply post-processing *rule* to `stdout` and `stderr` of *program*.
   The two outputs can be distinguished in the rules with the conditions
   `#stdout` and `#stderr`, based on the two initially defined tags.

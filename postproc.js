@@ -26,6 +26,9 @@
 /*  own package information  */
 const my          = require("./package.json")
 
+/*  internal requirements  */
+const fs          = require("fs")
+
 /*  external requirements  */
 const yargs       = require("yargs")
 const execa       = require("execa")
@@ -34,6 +37,7 @@ const chalk       = require("chalk")
 const Tokenizr    = require("tokenizr")
 const moment      = require("moment")
 const ansiStyles  = require("ansi-styles")
+const tail        = require("tail")
 
 /*  establish asynchronous context  */
 ;(async () => {
@@ -49,7 +53,7 @@ const ansiStyles  = require("ansi-styles")
             "dot-notation":              false,
             "halt-at-non-option":        true
         })
-        .usage("Usage: postproc [-h|--help] [-V|--version] [-C|--chdir <directory>] [-e|--execute <rule>] <command> ...")
+        .usage("Usage: postproc [-h|--help] [-V|--version] [-C|--chdir <directory>] [-i|--inject <file>] [-e|--execute <rule>] <command> ...")
         .option("h", {
             describe: "show program help information",
             alias:    "help", type: "boolean", default: false
@@ -61,6 +65,10 @@ const ansiStyles  = require("ansi-styles")
         .option("C", {
             describe: "directory to change to before executing command",
             alias:    "change-directory", type: "string", nargs: 1, default: process.cwd()
+        })
+        .option("i", {
+            describe: "inject output from pipe/file into stdout/stderr streams",
+            alias:    "inject", type: "string", nargs: 1, default: []
         })
         .option("e", {
             describe: "rule to execute",
@@ -84,6 +92,8 @@ const ansiStyles  = require("ansi-styles")
     /*  fix array option handling of yargs  */
     if (typeof argv.execute === "string")
         argv.execute = [ argv.execute ]
+    if (typeof argv.inject === "string")
+        argv.inject = [ argv.inject ]
 
     /*  sanity check command-line arguments  */
     if (argv._.length < 1)
@@ -91,6 +101,14 @@ const ansiStyles  = require("ansi-styles")
     const cmd   = argv._[0]
     const args  = argv._.slice(1)
     const chdir = argv.changeDirectory
+
+    /*  parse named pipe usage  */
+    argv.inject = argv.inject.map((spec) => {
+        let m = spec.match(/^(stdout|stderr):(.+)$/)
+        if (m === null)
+            throw new Error("invalid injection specification")
+        return { stream: m[1], path: m[2] }
+    })
 
     /*  parse a single rule  */
     const parseRule = (rule) => {
@@ -256,6 +274,37 @@ const ansiStyles  = require("ansi-styles")
         return line
     }
 
+    /*  the global tag store  */
+    const stdoutTags = { stdout: true }
+    const stderrTags = { stderr: true }
+
+    /*  optionally listen on named pipes  */
+    for (inject of argv.inject) {
+        let stats = await fs.promises.stat(inject.path).catch((err) => null)
+        if (stats === null)
+            throw new Error(`invalid injection path "${inject.path}": cannot access`)
+        if (stats.isFIFO()) {
+            let stream = byline(fs.createReadStream(inject.path, { encoding: "utf8" }))
+            stream.on("data", (line) => {
+                line = line.toString()
+                line = processLine(line, inject.stream === "stdout" ? stdoutTags : stderrTags)
+                if (line !== null)
+                    process[inject.stream].write(`${line}\n`)
+            })
+        }
+        else if (stats.isFile()) {
+            let stream = new tail.Tail(inject.path, { follow: true, encoding: "utf8" })
+            stream.on("line", (line) => {
+                line = line.toString()
+                line = processLine(line, inject.stream === "stdout" ? stdoutTags : stderrTags)
+                if (line !== null)
+                    process[inject.stream].write(`${line}\n`)
+            })
+        }
+        else
+            throw new Error(`invalid injection path "${inject.path}": neither fifo/pipe nor file`)
+    }
+
     /*  fork off shell command  */
     const proc = execa(cmd, args, {
         stripFinalNewline: false,
@@ -264,24 +313,16 @@ const ansiStyles  = require("ansi-styles")
         cwd:    chdir
     })
 
-    /*  post-process stdout or command  */
-    const stdoutTags = { stdout: true }
-    const stdout = byline.createStream(proc.stdout)
-    stdout.on("data", (line) => {
-        line = line.toString()
-        line = processLine(line, stdoutTags)
-        if (line !== null)
-            process.stdout.write(`${line}\n`)
-    })
-
-    /*  post-process stderr of command  */
-    const stderrTags = { stderr: true }
-    const stderr = byline.createStream(proc.stderr)
-    stderr.on("data", (line) => {
-        line = line.toString()
-        line = processLine(line, stderrTags)
-        if (line !== null)
-            process.stdout.write(`${line}\n`)
+    /*  post-process stdout/stderr of command  */
+    let streams = [ "stdout", "stderr" ]
+    streams.forEach((name) => {
+        const stream = byline.createStream(proc[name])
+        stream.on("data", (line) => {
+            line = line.toString()
+            line = processLine(line, name === "stdout" ? stdoutTags : stderrTags)
+            if (line !== null)
+                process[name].write(`${line}\n`)
+        })
     })
 
     /*  wait for command to exit and pass-through exit code  */
