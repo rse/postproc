@@ -24,28 +24,27 @@
     },
     "devDependencies": {
         "babel-eslint":           "10.1.0",
-        "eslint":                 "7.6.0",
-        "eslint-config-standard": "14.1.1",
-        "eslint-plugin-standard": "4.0.1",
+        "eslint":                 "7.17.0",
+        "eslint-config-standard": "16.0.2",
         "eslint-plugin-promise":  "4.2.1",
-        "eslint-plugin-import":   "2.22.0",
+        "eslint-plugin-import":   "2.22.1",
         "eslint-plugin-node":     "11.1.0",
         "npm-run-all":            "4.1.5",
         "pkg":                    "4.4.9",
-        "remark-cli":             "8.0.1",
-        "remark":                 "12.0.1",
+        "remark-cli":             "9.0.0",
+        "remark":                 "13.0.0",
         "remark-man":             "7.0.0"
     },
     "dependencies" : {
-        "yargs":                  "15.4.1",
-        "execa":                  "4.0.3",
+        "yargs":                  "16.2.0",
+        "execa":                  "5.0.0",
         "byline":                 "5.0.0",
-        "tokenizr":               "1.5.7",
+        "tokenizr":               "1.6.4",
         "strip-ansi":             "6.0.0",
-        "ansi-styles":            "4.2.1",
+        "ansi-styles":            "5.0.0",
         "chalk":                  "4.1.0",
-        "tail":                   "2.0.4",
-        "moment":                 "2.27.0"
+        "tail":                   "2.2.0",
+        "moment":                 "2.29.1"
     },
     "engines": {
         "node":                   ">=10.0.0"
