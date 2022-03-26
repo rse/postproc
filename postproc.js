@@ -53,6 +53,7 @@ const tail        = require("tail")
             "dot-notation":              false,
             "halt-at-non-option":        true
         })
+        .version(false)
         .usage("Usage: postproc [-h|--help] [-V|--version] [-C|--chdir <directory>] [-i|--inject <file>] [-e|--execute <rule>] <command> ...")
         .option("h", {
             describe: "show program help information",
@@ -74,7 +75,6 @@ const tail        = require("tail")
             describe: "rule to execute",
             alias:    "execute", type: "string", nargs: 1, default: []
         })
-        .version(false)
         .strict(true)
         .showHelpOnFail(true)
         .demand(0)
